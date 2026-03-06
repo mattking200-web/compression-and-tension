@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Squeeze & Stretch! Forces in Structures</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --squeeze: #FF5E5B;
+    --stretch: #00B4D8;
+    --yellow: #FFD166;
+    --green: #06D6A0;
+    --bg: #FFF8EE;
+    --dark: #2D2D2D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--dark); overflow-x: hidden; }
+
+  header {
+    background: linear-gradient(135deg, var(--squeeze) 0%, #ff8c42 50%, var(--yellow) 100%);
+    padding: 40px 20px 60px; text-align: center; position: relative; overflow: hidden;
+  }
+  header::before {
+    content: ''; position: absolute; bottom: -20px; left: 0; right: 0;
+    height: 50px; background: var(--bg); border-radius: 50% 50% 0 0;
+  }
+  .header-emoji { font-size: 3.5rem; display: block; animation: bounce 1.5s ease-in-out infinite; margin-bottom: 10px; }
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  header h1 { font-family: 'Fredoka One', cursive; font-size: clamp(2.2rem,6vw,4rem); color: white; text-shadow: 3px 4px 0 rgba(0,0,0,0.15); line-height: 1.1; margin-bottom: 10px; }
+  header p { font-size: 1.2rem; color: rgba(255,255,255,0.9); font-weight: 700; max-width: 500px; margin: 0 auto; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 40px 20px 80px; }
+  .section-title { font-family: 'Fredoka One', cursive; font-size: 2rem; text-align: center; margin-bottom: 30px; }
+
+  .force-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 60px; }
+  @media(max-width:600px){ .force-grid{grid-template-columns:1fr} }
+  .force-card { border-radius: 24px; padding: 32px 24px; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.1); transition: transform 0.2s; }
+  .force-card:hover { transform: translateY(-4px); }
+  .compression-card { background: linear-gradient(145deg,#fff0f0,#ffe0df); border: 3px solid var(--squeeze); }
+  .tension-card { background: linear-gradient(145deg,#e8f8ff,#cff0fb); border: 3px solid var(--stretch); }
+  .force-icon { font-size: 3.5rem; margin-bottom: 12px; display: block; }
+  .force-card h2 { font-family: 'Fredoka One', cursive; font-size: 2rem; margin-bottom: 10px; }
+  .compression-card h2 { color: var(--squeeze); }
+  .tension-card h2 { color: var(--stretch); }
+  .force-card p { font-size: 1.05rem; font-weight: 600; line-height: 1.5; color: #444; }
+  .force-label { display: inline-block; padding: 6px 18px; border-radius: 30px; font-family: 'Fredoka One', cursive; font-size: 1.1rem; margin-top: 14px; color: white; }
+  .compression-card .force-label { background: var(--squeeze); }
+  .tension-card .force-label { background: var(--stretch); }
+
+  .demo-section { background: white; border-radius: 28px; padding: 36px 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); margin-bottom: 60px; text-align: center; }
+  .demo-section h2 { font-family: 'Fredoka One', cursive; font-size: 1.8rem; margin-bottom: 6px; }
+  .demo-section .subtitle { color: #888; font-size: 1rem; font-weight: 600; margin-bottom: 30px; }
+  .demo-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+  .demo-btn { padding: 12px 28px; border: none; border-radius: 50px; font-family: 'Fredoka One', cursive; font-size: 1.2rem; cursor: pointer; transition: transform 0.15s; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .demo-btn:hover { transform: scale(1.05); }
+  .demo-btn.squeeze-btn { background: var(--squeeze); }
+  .demo-btn.stretch-btn { background: var(--stretch); }
+  .demo-btn.reset-btn { background: #aaa; }
+  .spring-container { display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; max-width: 480px; min-height: 120px; }
+  .block { width: 70px; height: 70px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 2rem; box-shadow: 0 4px 14px rgba(0,0,0,0.15); flex-shrink: 0; transition: transform 0.4s cubic-bezier(.34,1.56,.64,1); background: #FFD166; }
+  .spring-visual { flex: 1; height: 24px; display: flex; align-items: center; justify-content: center; min-width: 80px; }
+  .spring-svg { width: 100%; height: 40px; }
+  .demo-msg { font-size: 1.15rem; font-weight: 800; min-height: 36px; border-radius: 12px; padding: 8px 20px; display: inline-block; transition: all 0.3s; }
+  .msg-squeeze { background: #fff0f0; color: var(--squeeze); }
+  .msg-stretch { background: #e8f8ff; color: var(--stretch); }
+  .msg-normal { background: #f5f5f5; color: #666; }
+
+  .bridge-section { background: linear-gradient(145deg,#1a1a2e,#16213e); border-radius: 28px; padding: 36px 28px; margin-bottom: 60px; color: white; text-align: center; }
+  .bridge-section h2 { font-family: 'Fredoka One', cursive; font-size: 1.8rem; margin-bottom: 6px; color: var(--yellow); }
+  .bridge-section .subtitle { color: rgba(255,255,255,0.6); font-size: 1rem; font-weight: 600; margin-bottom: 30px; }
+  .bridge-wrapper { position: relative; width: 100%; max-width: 560px; margin: 0 auto 20px; height: 180px; }
+  .bridge-svg { width: 100%; height: 100%; }
+  .hotspot-info { background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 14px; padding: 14px 20px; font-size: 1rem; font-weight: 700; min-height: 60px; display: flex; align-items: center; justify-content: center; transition: all 0.3s; max-width: 400px; margin: 0 auto; }
+  .hotspot-info span { display: inline-block; width: 18px; height: 18px; border-radius: 50%; margin-right: 8px; flex-shrink: 0; }
+
+  /* EXAMPLE CARDS */
+  .examples-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 20px; margin-bottom: 60px; }
+  .example-card { background: white; border-radius: 20px; padding: 24px 16px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; border: 3px solid transparent; position: relative; }
+  .example-card:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 14px 32px rgba(0,0,0,0.14); }
+  .example-card.squeeze { border-color: var(--squeeze); }
+  .example-card.stretch { border-color: var(--stretch); }
+  .example-card.both { border-color: var(--green); }
+  .example-card .ex-emoji { font-size: 3rem; margin-bottom: 10px; display: block; }
+  .example-card h3 { font-family: 'Fredoka One', cursive; font-size: 1.2rem; margin-bottom: 6px; }
+  .example-card p { font-size: 0.85rem; font-weight: 600; color: #666; line-height: 1.4; }
+  .ex-tag { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 800; margin-top: 8px; color: white; }
+  .tag-squeeze { background: var(--squeeze); }
+  .tag-stretch { background: var(--stretch); }
+  .tag-both { background: var(--green); }
+  .click-hint { position: absolute; top: 10px; right: 12px; font-size: 0.7rem; font-weight: 800; color: #bbb; letter-spacing: 0.3px; }
+
+  .quiz-section { background: white; border-radius: 28px; padding: 36px 28px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); margin-bottom: 60px; }
+  .quiz-section h2 { font-family: 'Fredoka One', cursive; font-size: 1.8rem; text-align: center; margin-bottom: 6px; }
+  .quiz-section .subtitle { text-align: center; color: #888; font-size: 1rem; font-weight: 600; margin-bottom: 30px; }
+  .quiz-q { background: #f9f9f9; border-radius: 18px; padding: 20px 22px; margin-bottom: 20px; border: 2px solid #eee; }
+  .quiz-q p { font-size: 1.05rem; font-weight: 700; margin-bottom: 14px; }
+  .quiz-choices { display: flex; gap: 12px; flex-wrap: wrap; }
+  .quiz-choice { padding: 10px 22px; border-radius: 30px; border: 2.5px solid #ddd; background: white; font-family: 'Nunito', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+  .quiz-choice:hover { border-color: #aaa; background: #f0f0f0; }
+  .quiz-choice.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+  .quiz-choice.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+  .quiz-feedback { font-size: 0.9rem; font-weight: 700; margin-top: 10px; min-height: 22px; }
+  .score-display { text-align: center; margin-top: 24px; }
+  .score-display .score-num { font-family: 'Fredoka One', cursive; font-size: 3rem; color: var(--green); }
+  .score-display p { font-size: 1rem; font-weight: 700; color: #666; }
+
+  footer { background: var(--dark); color: white; text-align: center; padding: 30px 20px; font-weight: 700; font-size: 0.95rem; border-radius: 28px 28px 0 0; max-width: 960px; margin: 0 auto; }
+  footer .footer-emoji { font-size: 2rem; display: block; margin-bottom: 8px; }
+  .divider { text-align: center; margin: 0 0 50px; font-family: 'Fredoka One', cursive; font-size: 1.6rem; color: #ccc; letter-spacing: 6px; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+    z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: white; border-radius: 28px; max-width: 640px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+    transform: scale(0.88) translateY(24px);
+    transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  }
+  .modal-overlay.open .modal-box { transform: scale(1) translateY(0); }
+  .modal-header { padding: 24px 24px 18px; border-radius: 28px 28px 0 0; display: flex; align-items: center; gap: 14px; position: relative; }
+  .modal-header-emoji { font-size: 3rem; flex-shrink: 0; }
+  .modal-header-text h2 { font-family: 'Fredoka One', cursive; font-size: 1.8rem; line-height: 1; margin-bottom: 5px; }
+  .modal-tag { display: inline-block; padding: 4px 14px; border-radius: 20px; color: white; font-size: 0.85rem; font-weight: 800; }
+  .modal-close { position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.08); border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .modal-close:hover { background: rgba(0,0,0,0.18); }
+  .modal-body { padding: 0 24px 24px; }
+  .modal-diagram { background: #f4f7fb; border-radius: 20px; padding: 12px; margin-bottom: 18px; text-align: center; overflow: hidden; }
+  .modal-diagram svg { max-width: 100%; display: block; margin: 0 auto; }
+  .modal-desc { font-size: 1rem; font-weight: 600; color: #444; line-height: 1.65; margin-bottom: 16px; }
+  .force-facts { display: flex; gap: 10px; flex-wrap: wrap; }
+  .force-fact { flex: 1; min-width: 130px; border-radius: 14px; padding: 10px 12px; font-size: 0.88rem; font-weight: 700; line-height: 1.4; }
+  .fact-squeeze { background: #fff0f0; color: var(--squeeze); border: 2px solid #ffd0cf; }
+  .fact-stretch { background: #e8f8ff; color: var(--stretch); border: 2px solid #b3e8f8; }
+  .fact-both { background: #eafaf4; color: #059862; border: 2px solid #b2ead2; }
+
+  @keyframes arrowPulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+  @keyframes arrowDown { 0%,100%{transform:translateY(0)} 50%{transform:translateY(7px)} }
+  @keyframes arrowOut  { 0%,100%{transform:translateX(0)} 50%{transform:translateX(7px)} }
+  @keyframes arrowIn   { 0%,100%{transform:translateX(0)} 50%{transform:translateX(-7px)} }
+  .anim-pulse { animation: arrowPulse 1.3s ease-in-out infinite; }
+  .anim-down  { animation: arrowDown  1.1s ease-in-out infinite; }
+  .anim-out   { animation: arrowOut   1.1s ease-in-out infinite; }
+  .anim-in    { animation: arrowIn    1.1s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="header-emoji">🏗️</span>
+  <h1>Squeeze & Stretch!</h1>
+  <p>Learn about the forces that hold buildings and bridges together!</p>
+</header>
+
+<main>
+  <div style="margin-top:50px;margin-bottom:10px;">
+    <p class="section-title">Meet the Two Forces! 💪</p>
+  </div>
+
+  <div class="force-grid">
+    <div class="force-card compression-card">
+      <span class="force-icon">🤜🤛</span>
+      <h2>Compression</h2>
+      <p>Compression is a <strong>squeezing</strong> force. It <strong>pushes materials together</strong>. Think of squishing a sponge with both hands!</p>
+      <span class="force-label">SQUEEZES &amp; PUSHES</span>
+    </div>
+    <div class="force-card tension-card">
+      <span class="force-icon">↔️</span>
+      <h2>Tension</h2>
+      <p>Tension is a <strong>pulling</strong> force. It <strong>stretches materials apart</strong>. Think of pulling both ends of an elastic band!</p>
+      <span class="force-label">PULLS &amp; STRETCHES</span>
+    </div>
+  </div>
+
+  <div class="divider">✦ ✦ ✦</div>
+
+  <div class="demo-section">
+    <h2>🎮 Try It Yourself!</h2>
+    <p class="subtitle">Press the buttons to see compression and tension in action</p>
+    <div class="spring-container">
+      <div class="block" id="blockLeft">🧱</div>
+      <div class="spring-visual">
+        <svg class="spring-svg" id="springSVG" viewBox="0 0 200 40" preserveAspectRatio="none">
+          <polyline id="springLine" points="" stroke="#888" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="block" id="blockRight">🧱</div>
+    </div>
+    <div class="demo-msg msg-normal" id="demoMsg">Pick a force to see what happens!</div>
+    <div class="demo-btns">
+      <button class="demo-btn squeeze-btn" onclick="doSqueeze()">🤜🤛 Squeeze It!</button>
+      <button class="demo-btn stretch-btn" onclick="doStretch()">↔️ Stretch It!</button>
+      <button class="demo-btn reset-btn" onclick="doReset()">🔄 Reset</button>
+    </div>
+  </div>
+
+  <div class="divider">✦ ✦ ✦</div>
+
+  <div class="bridge-section">
+    <h2>🌉 Bridge Explorer</h2>
+    <p class="subtitle">Tap the glowing parts of the bridge to discover the forces!</p>
+    <div class="bridge-wrapper">
+      <svg class="bridge-svg" viewBox="0 0 560 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="150" width="560" height="30" fill="#1a5276" opacity="0.5"/>
+        <ellipse cx="140" cy="153" rx="60" ry="6" fill="#2471a3" opacity="0.4"/>
+        <ellipse cx="420" cy="156" rx="50" ry="5" fill="#2471a3" opacity="0.4"/>
+        <rect x="30" y="100" width="500" height="14" rx="4" fill="#7f8c8d"/>
+        <rect x="30" y="100" width="500" height="5" rx="4" fill="#95a5a6"/>
+        <rect class="bhotspot" data-type="compression" data-label="Pillars — COMPRESSION" data-desc="The pillars hold up the bridge deck! All that weight pushes DOWN, squeezing the pillars. They are under COMPRESSION! 🏛️" x="105" y="100" width="30" height="50" rx="4" fill="#e67e22" style="cursor:pointer"/>
+        <rect x="95" y="148" width="50" height="8" rx="3" fill="#e67e22"/>
+        <rect class="bhotspot" data-type="compression" data-label="Pillars — COMPRESSION" data-desc="The pillars hold up the bridge deck! All that weight pushes DOWN, squeezing the pillars. They are under COMPRESSION! 🏛️" x="425" y="100" width="30" height="50" rx="4" fill="#e67e22" style="cursor:pointer"/>
+        <rect x="415" y="148" width="50" height="8" rx="3" fill="#e67e22"/>
+        <rect x="112" y="20" width="16" height="82" rx="3" fill="#bdc3c7"/>
+        <rect x="432" y="20" width="16" height="82" rx="3" fill="#bdc3c7"/>
+        <polygon points="112,20 120,10 128,20" fill="#bdc3c7"/>
+        <polygon points="432,20 440,10 448,20" fill="#bdc3c7"/>
+        <path class="bhotspot" data-type="tension" data-label="Main Cable — TENSION" data-desc="The big cables are pulled tight between the towers and anchors. They are stretched — under TENSION! They hold up the whole bridge! 🪢" d="M 40,100 Q 120,20 280,60 Q 440,20 520,100" stroke="#FFD166" stroke-width="5" fill="none" stroke-linecap="round" style="cursor:pointer"/>
+        <g class="bhotspot" data-type="tension" data-label="Hanging Wires — TENSION" data-desc="These little wires hang from the big cable and hold up the road. They are being pulled and stretched — TENSION! 🪢" style="cursor:pointer">
+          <line x1="160" y1="49" x2="160" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+          <line x1="200" y1="44" x2="200" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+          <line x1="240" y1="47" x2="240" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+          <line x1="280" y1="60" x2="280" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+          <line x1="320" y1="47" x2="320" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+          <line x1="360" y1="44" x2="360" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+          <line x1="400" y1="49" x2="400" y2="100" stroke="#FFD166" stroke-width="2.5"/>
+        </g>
+        <rect class="bhotspot" data-type="compression" data-label="Road Deck — COMPRESSION" data-desc="The road deck has cars and people on it. All that weight presses down — that's COMPRESSION squeezing it! 🚗" x="170" y="100" width="220" height="14" fill="transparent" style="cursor:pointer"/>
+        <rect class="bhotspot" data-type="tension" data-label="Anchor Blocks — TENSION" data-desc="The anchor blocks hold the ends of the cables. The cables pull hard trying to stretch away — TENSION! ⚓" x="20" y="108" width="40" height="24" rx="4" fill="#00B4D8" style="cursor:pointer"/>
+        <rect class="bhotspot" data-type="tension" data-label="Anchor Blocks — TENSION" data-desc="The anchor blocks hold the ends of the cables. The cables pull hard trying to stretch away — TENSION! ⚓" x="500" y="108" width="40" height="24" rx="4" fill="#00B4D8" style="cursor:pointer"/>
+        <text x="120" y="15" font-family="Fredoka One, cursive" font-size="13" fill="#FFD166" text-anchor="middle">TAP ME!</text>
+        <text x="440" y="15" font-family="Fredoka One, cursive" font-size="13" fill="#FFD166" text-anchor="middle">TAP ME!</text>
+        <text x="40" y="107" font-family="Fredoka One, cursive" font-size="11" fill="#00B4D8" text-anchor="middle">TAP!</text>
+        <text x="520" y="107" font-family="Fredoka One, cursive" font-size="11" fill="#00B4D8" text-anchor="middle">TAP!</text>
+      </svg>
+    </div>
+    <div class="hotspot-info" id="hotspotInfo">
+      <span>👆</span>&nbsp;Tap any part of the bridge to learn about its force!
+    </div>
+  </div>
+
+  <!-- REAL WORLD EXAMPLES -->
+  <p class="section-title">🌍 Forces in the Real World!</p>
+  <p style="text-align:center;font-weight:700;color:#888;margin-top:-20px;margin-bottom:28px;">👆 Click any card to see the force arrows!</p>
+  <div class="examples-grid">
+    <div class="example-card squeeze" onclick="openModal('columns')">
+      <span class="click-hint">TAP TO EXPLORE →</span>
+      <span class="ex-emoji">🏛️</span>
+      <h3>Columns</h3>
+      <p>Columns hold up roofs. The weight squeezes them downward.</p>
+      <span class="ex-tag tag-squeeze">COMPRESSION</span>
+    </div>
+    <div class="example-card stretch" onclick="openModal('tugofwar')">
+      <span class="click-hint">TAP TO EXPLORE →</span>
+      <span class="ex-emoji">🦸</span>
+      <h3>Tug of War Rope</h3>
+      <p>Both teams pull the rope, stretching it apart.</p>
+      <span class="ex-tag tag-stretch">TENSION</span>
+    </div>
+    <div class="example-card stretch" onclick="openModal('cables')">
+      <span class="click-hint">TAP TO EXPLORE →</span>
+      <span class="ex-emoji">🌉</span>
+      <h3>Suspension Cables</h3>
+      <p>Giant cables on bridges are always being pulled and stretched.</p>
+      <span class="ex-tag tag-stretch">TENSION</span>
+    </div>
+    <div class="example-card squeeze" onclick="openModal('arch')">
+      <span class="click-hint">TAP TO EXPLORE →</span>
+      <span class="ex-emoji">🌁</span>
+      <h3>Arch Bridge</h3>
+      <p>The curved arch shape redirects forces inward — compression!</p>
+      <span class="ex-tag tag-squeeze">COMPRESSION</span>
+    </div>
+    <div class="example-card stretch" onclick="openModal('guitar')">
+      <span class="click-hint">TAP TO EXPLORE →</span>
+      <span class="ex-emoji">🎸</span>
+      <h3>Guitar Strings</h3>
+      <p>Strings are pulled tight. That tension makes beautiful music!</p>
+      <span class="ex-tag tag-stretch">TENSION</span>
+    </div>
+    <div class="example-card both" onclick="openModal('floor')">
+      <span class="click-hint">TAP TO EXPLORE →</span>
+      <span class="ex-emoji">🏠</span>
+      <h3>A House Floor</h3>
+      <p>The top of a floor beam is squeezed, the bottom is stretched!</p>
+      <span class="ex-tag tag-both">BOTH!</span>
+    </div>
+  </div>
+
+  <div class="divider">✦ ✦ ✦</div>
+
+  <div class="quiz-section">
+    <h2>🧠 Quick Quiz!</h2>
+    <p class="subtitle">Test what you've learned — choose the right answer!</p>
+    <div id="quizContainer"></div>
+    <div class="score-display" id="scoreDisplay" style="display:none;">
+      <div class="score-num" id="scoreNum">0/5</div>
+      <p id="scoreMsg"></p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span class="footer-emoji">🏗️</span>
+  <p>Great engineers understand forces! Keep exploring, keep building! 🌟</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="handleOverlayClick(event)">
+  <div class="modal-box" id="modalBox">
+    <div class="modal-header" id="modalHeader">
+      <span class="modal-header-emoji" id="modalEmoji"></span>
+      <div class="modal-header-text">
+        <h2 id="modalTitle"></h2>
+        <span class="modal-tag" id="modalTag"></span>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-diagram" id="modalDiagram"></div>
+      <p class="modal-desc" id="modalDesc"></p>
+      <div class="force-facts" id="modalFacts"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// SPRING
+function drawSpring(state){
+  const line=document.getElementById('springLine'), coils=8, cy=20;
+  let start,end,amp;
+  if(state==='compressed'){start=20;end=180;amp=16;}
+  else if(state==='stretched'){start=5;end=195;amp=8;}
+  else{start=15;end=185;amp=12;}
+  const steps=coils*4,pts=[];
+  for(let i=0;i<=steps;i++){
+    const x=start+(end-start)*(i/steps);
+    const y=cy+amp*Math.sin((i/steps)*coils*Math.PI*2);
+    pts.push(x+','+y);
+  }
+  line.setAttribute('points',pts.join(' '));
+  line.setAttribute('stroke',state==='compressed'?'#FF5E5B':state==='stretched'?'#00B4D8':'#888');
+  line.setAttribute('stroke-width',state==='compressed'?'4.5':state==='stretched'?'3':'3.5');
+}
+function doSqueeze(){
+  drawSpring('compressed');
+  document.getElementById('blockLeft').style.transform='translateX(28px)';
+  document.getElementById('blockRight').style.transform='translateX(-28px)';
+  const m=document.getElementById('demoMsg');
+  m.textContent='🤜🤛 Compression! The spring is being SQUEEZED and pushed together!';
+  m.className='demo-msg msg-squeeze';
+}
+function doStretch(){
+  drawSpring('stretched');
+  document.getElementById('blockLeft').style.transform='translateX(-22px)';
+  document.getElementById('blockRight').style.transform='translateX(22px)';
+  const m=document.getElementById('demoMsg');
+  m.textContent='↔️ Tension! The spring is being PULLED and stretched apart!';
+  m.className='demo-msg msg-stretch';
+}
+function doReset(){
+  drawSpring('normal');
+  document.getElementById('blockLeft').style.transform='translateX(0)';
+  document.getElementById('blockRight').style.transform='translateX(0)';
+  const m=document.getElementById('demoMsg');
+  m.textContent='Pick a force to see what happens!';
+  m.className='demo-msg msg-normal';
+}
+drawSpring('normal');
+
+// BRIDGE
+document.querySelectorAll('.bhotspot').forEach(el=>{
+  el.addEventListener('click',function(){
+    const t=this.dataset.type,label=this.dataset.label,desc=this.dataset.desc;
+    const info=document.getElementById('hotspotInfo');
+    const color=t==='compression'?'#FF5E5B':'#00B4D8';
+    const emoji=t==='compression'?'🤜🤛':'↔️';
+    info.innerHTML='<span style="background:'+color+';"></span><strong style="color:'+color+'">'+emoji+' '+label+':</strong>&nbsp;'+desc;
+    info.style.borderColor=color;
+    info.style.background=t==='compression'?'rgba(255,94,91,0.12)':'rgba(0,180,216,0.12)';
+  });
+});
+
+// MODAL DATA
+const examples = {
+  columns:{
+    emoji:'🏛️', title:'Columns', tagText:'COMPRESSION', tagColor:'#FF5E5B',
+    headerBg:'linear-gradient(135deg,#fff0f0,#ffd0cf)',
+    desc:'A column holds up the heavy roof above it. Gravity pulls the roof DOWN, and all that weight presses hard on top of the column. This squeezing force from both above AND below is called COMPRESSION. Stone and concrete columns are amazing at handling compression!',
+    facts:[
+      {cls:'fact-squeeze',text:'⬇️ The roof pushes DOWN on top of the column'},
+      {cls:'fact-squeeze',text:'⬆️ The ground pushes UP from the bottom'},
+      {cls:'fact-squeeze',text:'🤜🤛 Both forces SQUEEZE the column — Compression!'}
+    ],
+    svg:`<svg viewBox="0 0 300 260" width="300" height="260" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="220" width="300" height="40" fill="#c8b99a"/>
+  <text x="150" y="244" font-family="Fredoka One,cursive" font-size="13" fill="#8a7355" text-anchor="middle">GROUND</text>
+  <rect x="100" y="72" width="100" height="150" rx="8" fill="#b0c4de" stroke="#7a9cbf" stroke-width="3"/>
+  <rect x="82" y="65" width="136" height="16" rx="6" fill="#8aabce"/>
+  <rect x="82" y="214" width="136" height="14" rx="6" fill="#8aabce"/>
+  <rect x="30" y="20" width="240" height="52" rx="10" fill="#e8d5b0" stroke="#c4a96b" stroke-width="2"/>
+  <text x="150" y="52" font-family="Fredoka One,cursive" font-size="17" fill="#8a6a2a" text-anchor="middle">HEAVY ROOF</text>
+  <g class="anim-down">
+    <line x1="150" y1="74" x2="150" y2="102" stroke="#FF5E5B" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="150,112 142,96 158,96" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-down" style="animation-delay:0.25s">
+    <line x1="118" y1="74" x2="118" y2="98" stroke="#FF5E5B" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+    <polygon points="118,107 111,94 125,94" fill="#FF5E5B" opacity="0.55"/>
+  </g>
+  <g class="anim-down" style="animation-delay:0.5s">
+    <line x1="182" y1="74" x2="182" y2="98" stroke="#FF5E5B" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+    <polygon points="182,107 175,94 189,94" fill="#FF5E5B" opacity="0.55"/>
+  </g>
+  <g class="anim-pulse">
+    <line x1="150" y1="218" x2="150" y2="190" stroke="#FF5E5B" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="150,180 142,196 158,196" fill="#FF5E5B"/>
+  </g>
+  <rect x="168" y="94" width="116" height="26" rx="8" fill="#FF5E5B"/>
+  <text x="226" y="112" font-family="Fredoka One,cursive" font-size="13" fill="white" text-anchor="middle">Pushes DOWN ⬇️</text>
+  <rect x="168" y="176" width="116" height="26" rx="8" fill="#FF5E5B"/>
+  <text x="226" y="194" font-family="Fredoka One,cursive" font-size="13" fill="white" text-anchor="middle">Pushes UP ⬆️</text>
+  <text x="150" y="158" font-family="Fredoka One,cursive" font-size="14" fill="#4a6fa5" text-anchor="middle">COMPRESSION</text>
+  <text x="150" y="176" font-family="Fredoka One,cursive" font-size="12" fill="#4a6fa5" text-anchor="middle">inside here!</text>
+</svg>`
+  },
+
+  tugofwar:{
+    emoji:'🦸', title:'Tug of War Rope', tagText:'TENSION', tagColor:'#00B4D8',
+    headerBg:'linear-gradient(135deg,#e8f8ff,#b3e8f8)',
+    desc:'In tug of war, two teams pull the rope in OPPOSITE directions. Each team is pulling AWAY from the middle. This creates a stretching force called TENSION. The more both teams pull, the more tension is in the rope — it wants to snap back!',
+    facts:[
+      {cls:'fact-stretch',text:'⬅️ Team A pulls the rope to the LEFT'},
+      {cls:'fact-stretch',text:'➡️ Team B pulls the rope to the RIGHT'},
+      {cls:'fact-stretch',text:'↔️ Both pulls STRETCH the rope — Tension!'}
+    ],
+    svg:`<svg viewBox="0 0 360 160" width="360" height="160" xmlns="http://www.w3.org/2000/svg">
+  <rect x="60" y="72" width="240" height="16" rx="8" fill="#c8a45a" stroke="#a07a30" stroke-width="2"/>
+  <text x="50" y="52" font-size="40" text-anchor="middle">🧑</text>
+  <text x="310" y="52" font-size="40" text-anchor="middle">🧑</text>
+  <text x="50" y="128" font-family="Fredoka One,cursive" font-size="13" fill="#555" text-anchor="middle">Team A</text>
+  <text x="310" y="128" font-family="Fredoka One,cursive" font-size="13" fill="#555" text-anchor="middle">Team B</text>
+  <g class="anim-out" style="animation-name:arrowIn">
+    <line x1="72" y1="80" x2="24" y2="80" stroke="#00B4D8" stroke-width="7" stroke-linecap="round"/>
+    <polygon points="10,80 28,71 28,89" fill="#00B4D8"/>
+  </g>
+  <g class="anim-out" style="animation-delay:0.2s">
+    <line x1="288" y1="80" x2="336" y2="80" stroke="#00B4D8" stroke-width="7" stroke-linecap="round"/>
+    <polygon points="350,80 332,71 332,89" fill="#00B4D8"/>
+  </g>
+  <rect x="120" y="94" width="120" height="26" rx="10" fill="#00B4D8"/>
+  <text x="180" y="112" font-family="Fredoka One,cursive" font-size="15" fill="white" text-anchor="middle">TENSION!</text>
+  <text x="52" y="148" font-family="Fredoka One,cursive" font-size="12" fill="#00B4D8" text-anchor="middle">← Pulls left</text>
+  <text x="308" y="148" font-family="Fredoka One,cursive" font-size="12" fill="#00B4D8" text-anchor="middle">Pulls right →</text>
+</svg>`
+  },
+
+  cables:{
+    emoji:'🌉', title:'Suspension Cables', tagText:'TENSION', tagColor:'#00B4D8',
+    headerBg:'linear-gradient(135deg,#e8f8ff,#b3e8f8)',
+    desc:'On a suspension bridge, giant steel cables are stretched tight between tall towers, then anchored firmly at both ends. The bridge deck hangs from these cables. The weight of the deck pulls the cables DOWN while the anchors hold both ends — this creates huge TENSION (a pulling and stretching force) inside every cable!',
+    facts:[
+      {cls:'fact-stretch',text:'⚓ Anchors hold both ends of the cable firmly'},
+      {cls:'fact-stretch',text:'⬇️ The bridge deck weight pulls the cable down'},
+      {cls:'fact-stretch',text:'↔️ All these pulls create TENSION in the cable!'}
+    ],
+    svg:`<svg viewBox="0 0 360 200" width="360" height="200" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="165" width="360" height="35" fill="#1a5276" opacity="0.4" rx="4"/>
+  <rect x="20" y="120" width="320" height="12" rx="4" fill="#7f8c8d"/>
+  <rect x="95" y="30" width="16" height="92" rx="3" fill="#95a5a6"/>
+  <rect x="249" y="30" width="16" height="92" rx="3" fill="#95a5a6"/>
+  <polygon points="95,30 103,18 111,30" fill="#95a5a6"/>
+  <polygon points="249,30 257,18 265,30" fill="#95a5a6"/>
+  <path d="M 20,122 Q 103,38 180,68 Q 257,38 340,122" stroke="#FFD166" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <g class="anim-out" style="animation-name:arrowIn">
+    <line x1="28" y1="118" x2="4" y2="106" stroke="#00B4D8" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="0,103 12,116 22,105" fill="#00B4D8"/>
+  </g>
+  <g class="anim-out" style="animation-delay:0.2s">
+    <line x1="332" y1="118" x2="356" y2="106" stroke="#00B4D8" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="360,103 348,116 338,105" fill="#00B4D8"/>
+  </g>
+  <g class="anim-down" style="animation-delay:0.1s">
+    <line x1="140" y1="73" x2="140" y2="118" stroke="#FF5E5B" stroke-width="3" stroke-linecap="round" stroke-dasharray="4,3"/>
+    <polygon points="140,122 134,110 146,110" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-down" style="animation-delay:0.3s">
+    <line x1="180" y1="70" x2="180" y2="118" stroke="#FF5E5B" stroke-width="3" stroke-linecap="round" stroke-dasharray="4,3"/>
+    <polygon points="180,122 174,110 186,110" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-down" style="animation-delay:0.5s">
+    <line x1="220" y1="73" x2="220" y2="118" stroke="#FF5E5B" stroke-width="3" stroke-linecap="round" stroke-dasharray="4,3"/>
+    <polygon points="220,122 214,110 226,110" fill="#FF5E5B"/>
+  </g>
+  <rect x="110" y="40" width="140" height="24" rx="8" fill="#00B4D8"/>
+  <text x="180" y="57" font-family="Fredoka One,cursive" font-size="14" fill="white" text-anchor="middle">TENSION in cable</text>
+  <rect x="198" y="132" width="116" height="22" rx="8" fill="#FF5E5B" opacity="0.9"/>
+  <text x="256" y="148" font-family="Fredoka One,cursive" font-size="12" fill="white" text-anchor="middle">Weight pulls down</text>
+  <text x="10" y="100" font-family="Fredoka One,cursive" font-size="10" fill="#00B4D8" text-anchor="middle">Pulls</text>
+  <text x="350" y="100" font-family="Fredoka One,cursive" font-size="10" fill="#00B4D8" text-anchor="middle">Pulls</text>
+</svg>`
+  },
+
+  arch:{
+    emoji:'🌁', title:'Arch Bridge', tagText:'COMPRESSION', tagColor:'#FF5E5B',
+    headerBg:'linear-gradient(135deg,#fff0f0,#ffd0cf)',
+    desc:'An arch is a curved shape that is incredibly strong! When weight pushes DOWN on the top, the curved shape spreads the force OUTWARD and DOWN through the sides of the arch. This pushes and squeezes the arch stones together — that is COMPRESSION! Romans built arches 2000 years ago and they still stand today!',
+    facts:[
+      {cls:'fact-squeeze',text:'⬇️ Weight pushes down on top of the arch'},
+      {cls:'fact-squeeze',text:'↘️↙️ The arch spreads force outward and down'},
+      {cls:'fact-squeeze',text:'🤜🤛 Each stone is squeezed — Compression!'}
+    ],
+    svg:`<svg viewBox="0 0 320 230" width="320" height="230" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0" y="198" width="320" height="32" fill="#c8b99a"/>
+  <path d="M 38,198 L 38,128 Q 38,48 160,48 Q 282,48 282,128 L 282,198" fill="#d4b896" stroke="#a07a50" stroke-width="3"/>
+  <path d="M 68,198 L 68,132 Q 68,80 160,80 Q 252,80 252,132 L 252,198" fill="#87CEEB" opacity="0.35"/>
+  <rect x="18" y="38" width="284" height="16" rx="6" fill="#95a5a6"/>
+  <text x="160" y="30" font-family="Fredoka One,cursive" font-size="13" fill="#666" text-anchor="middle">ROAD / LOAD</text>
+  <g class="anim-down">
+    <line x1="160" y1="56" x2="160" y2="78" stroke="#FF5E5B" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="160,87 152,72 168,72" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-out" style="animation-name:arrowIn; transform-origin:68px 148px">
+    <line x1="62" y1="148" x2="34" y2="172" stroke="#FF5E5B" stroke-width="5" stroke-linecap="round"/>
+    <polygon points="26,178 38,163 50,175" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-out" style="transform-origin:252px 148px; animation-delay:0.15s">
+    <line x1="258" y1="148" x2="286" y2="172" stroke="#FF5E5B" stroke-width="5" stroke-linecap="round"/>
+    <polygon points="294,178 282,163 270,175" fill="#FF5E5B"/>
+  </g>
+  <rect x="84" y="128" width="152" height="26" rx="10" fill="#FF5E5B"/>
+  <text x="160" y="146" font-family="Fredoka One,cursive" font-size="14" fill="white" text-anchor="middle">COMPRESSION</text>
+  <text x="42" y="196" font-family="Fredoka One,cursive" font-size="11" fill="#FF5E5B" text-anchor="middle">Force↘</text>
+  <text x="278" y="196" font-family="Fredoka One,cursive" font-size="11" fill="#FF5E5B" text-anchor="middle">↙Force</text>
+</svg>`
+  },
+
+  guitar:{
+    emoji:'🎸', title:'Guitar Strings', tagText:'TENSION', tagColor:'#00B4D8',
+    headerBg:'linear-gradient(135deg,#e8f8ff,#b3e8f8)',
+    desc:'Guitar strings are pulled tight between the tuning peg at the top and the bridge at the bottom. Both ends pull AWAY from each other, stretching the string taut. This is TENSION! The tighter the string (more tension), the higher the musical note it plays when you pluck it!',
+    facts:[
+      {cls:'fact-stretch',text:'⬆️ The tuning peg pulls the string upward'},
+      {cls:'fact-stretch',text:'⬇️ The bridge holds the string down at the bottom'},
+      {cls:'fact-stretch',text:'↔️ Tension in the string creates the musical note!'}
+    ],
+    svg:`<svg viewBox="0 0 260 280" width="260" height="280" xmlns="http://www.w3.org/2000/svg">
+  <rect x="116" y="14" width="28" height="76" rx="10" fill="#c8a46a" stroke="#8a6a2a" stroke-width="2"/>
+  <circle cx="130" cy="16" r="12" fill="#888" stroke="#555" stroke-width="2"/>
+  <text x="130" y="22" font-family="Fredoka One,cursive" font-size="10" fill="white" text-anchor="middle">peg</text>
+  <ellipse cx="130" cy="190" rx="78" ry="82" fill="#c8814a" stroke="#8a4a1a" stroke-width="2.5"/>
+  <ellipse cx="130" cy="200" rx="52" ry="56" fill="#c8814a" stroke="#8a4a1a" stroke-width="1"/>
+  <circle cx="130" cy="186" r="28" fill="#7a3a10" stroke="#5a2a08" stroke-width="2"/>
+  <rect x="106" y="242" width="48" height="12" rx="5" fill="#5a3010" stroke="#3a1a00" stroke-width="1.5"/>
+  <line x1="130" y1="26" x2="130" y2="245" stroke="#e0e0e0" stroke-width="2.5"/>
+  <g class="anim-out" style="animation-name:arrowIn; transform-origin:130px 26px">
+    <line x1="130" y1="26" x2="130" y2="6" stroke="#00B4D8" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="130,0 122,14 138,14" fill="#00B4D8"/>
+  </g>
+  <g class="anim-down">
+    <line x1="130" y1="246" x2="130" y2="266" stroke="#00B4D8" stroke-width="6" stroke-linecap="round"/>
+    <polygon points="130,274 122,258 138,258" fill="#00B4D8"/>
+  </g>
+  <rect x="150" y="6" width="96" height="22" rx="8" fill="#00B4D8"/>
+  <text x="198" y="21" font-family="Fredoka One,cursive" font-size="12" fill="white" text-anchor="middle">Pulls UP ⬆️</text>
+  <rect x="150" y="254" width="96" height="22" rx="8" fill="#00B4D8"/>
+  <text x="198" y="269" font-family="Fredoka One,cursive" font-size="12" fill="white" text-anchor="middle">Holds DOWN ⬇️</text>
+  <rect x="8" y="118" width="100" height="26" rx="8" fill="#00B4D8"/>
+  <text x="58" y="135" font-family="Fredoka One,cursive" font-size="13" fill="white" text-anchor="middle">TENSION!</text>
+</svg>`
+  },
+
+  floor:{
+    emoji:'🏠', title:'A House Floor Beam', tagText:'BOTH FORCES!', tagColor:'#06D6A0',
+    headerBg:'linear-gradient(135deg,#eafaf4,#b2ead2)',
+    desc:'A floor beam has BOTH forces at the same time — amazing! When you stand on a floor, your weight bends the beam slightly. The TOP of the beam gets SQUEEZED together (compression), while the BOTTOM of the beam gets STRETCHED apart (tension). Engineers choose materials that can handle both!',
+    facts:[
+      {cls:'fact-squeeze',text:'🤜🤛 TOP of beam: COMPRESSION — squeezing inward!'},
+      {cls:'fact-stretch',text:'↔️ BOTTOM of beam: TENSION — stretching outward!'},
+      {cls:'fact-both',text:'🏗️ Engineers design beams to handle BOTH forces!'}
+    ],
+    svg:`<svg viewBox="0 0 360 220" width="360" height="220" xmlns="http://www.w3.org/2000/svg">
+  <rect x="14" y="55" width="38" height="136" rx="4" fill="#bdc3c7" stroke="#aaa" stroke-width="1.5"/>
+  <rect x="308" y="55" width="38" height="136" rx="4" fill="#bdc3c7" stroke="#aaa" stroke-width="1.5"/>
+  <path d="M 52,112 Q 180,134 308,112" stroke="#8a6a2a" stroke-width="24" fill="none" stroke-linecap="round"/>
+  <path d="M 52,105 Q 180,127 308,105" stroke="#c8a45a" stroke-width="8" fill="none" stroke-linecap="round" opacity="0.6"/>
+  <path d="M 52,103 Q 180,125 308,103" stroke="#FF5E5B" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-dasharray="6,3"/>
+  <path d="M 52,124 Q 180,146 308,124" stroke="#00B4D8" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-dasharray="6,3"/>
+  <text x="180" y="92" font-size="32" text-anchor="middle">🧒</text>
+  <g class="anim-down">
+    <line x1="180" y1="98" x2="180" y2="116" stroke="#888" stroke-width="4" stroke-linecap="round"/>
+    <polygon points="180,122 174,109 186,109" fill="#888"/>
+  </g>
+  <g class="anim-out" style="animation-name:arrowIn; transform-origin:92px 106px">
+    <line x1="82" y1="106" x2="110" y2="106" stroke="#FF5E5B" stroke-width="5" stroke-linecap="round"/>
+    <polygon points="118,106 104,99 104,113" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-out" style="transform-origin:268px 106px; animation-delay:0.1s">
+    <line x1="278" y1="106" x2="250" y2="106" stroke="#FF5E5B" stroke-width="5" stroke-linecap="round"/>
+    <polygon points="242,106 256,99 256,113" fill="#FF5E5B"/>
+  </g>
+  <g class="anim-out" style="animation-delay:0.2s; transform-origin:82px 132px">
+    <line x1="82" y1="132" x2="54" y2="132" stroke="#00B4D8" stroke-width="5" stroke-linecap="round"/>
+    <polygon points="46,132 60,125 60,139" fill="#00B4D8"/>
+  </g>
+  <g class="anim-out" style="animation-delay:0.2s; transform-origin:278px 132px">
+    <line x1="278" y1="132" x2="306" y2="132" stroke="#00B4D8" stroke-width="5" stroke-linecap="round"/>
+    <polygon points="314,132 300,125 300,139" fill="#00B4D8"/>
+  </g>
+  <rect x="4" y="92" width="50" height="22" rx="6" fill="#FF5E5B"/>
+  <text x="29" y="107" font-family="Fredoka One,cursive" font-size="10" fill="white" text-anchor="middle">SQUEEZE</text>
+  <rect x="4" y="122" width="50" height="22" rx="6" fill="#00B4D8"/>
+  <text x="29" y="137" font-family="Fredoka One,cursive" font-size="10" fill="white" text-anchor="middle">STRETCH</text>
+  <rect x="306" y="92" width="50" height="22" rx="6" fill="#FF5E5B"/>
+  <text x="331" y="107" font-family="Fredoka One,cursive" font-size="10" fill="white" text-anchor="middle">SQUEEZE</text>
+  <rect x="306" y="122" width="50" height="22" rx="6" fill="#00B4D8"/>
+  <text x="331" y="137" font-family="Fredoka One,cursive" font-size="10" fill="white" text-anchor="middle">STRETCH</text>
+  <text x="180" y="184" font-family="Fredoka One,cursive" font-size="13" fill="#FF5E5B" text-anchor="middle">TOP = Compression (squeezed)</text>
+  <text x="180" y="202" font-family="Fredoka One,cursive" font-size="13" fill="#00B4D8" text-anchor="middle">BOTTOM = Tension (stretched)</text>
+</svg>`
+  }
+};
+
+function openModal(key){
+  const d=examples[key];
+  document.getElementById('modalEmoji').textContent=d.emoji;
+  document.getElementById('modalTitle').textContent=d.title;
+  const tag=document.getElementById('modalTag');
+  tag.textContent=d.tagText; tag.style.background=d.tagColor;
+  document.getElementById('modalHeader').style.background=d.headerBg;
+  document.getElementById('modalDiagram').innerHTML=d.svg;
+  document.getElementById('modalDesc').textContent=d.desc;
+  const facts=document.getElementById('modalFacts');
+  facts.innerHTML=d.facts.map(f=>'<div class="force-fact '+f.cls+'">'+f.text+'</div>').join('');
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function handleOverlayClick(e){
+  if(e.target===document.getElementById('modalOverlay')) closeModal();
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+// QUIZ
+const questions=[
+  {q:"A book sits on a table. The table legs are being ___?",choices:["Stretched apart","Squeezed together","Flying away"],answer:1,explain:"✅ Correct! The weight of the book pushes DOWN on the legs — that's COMPRESSION (squeezing)!"},
+  {q:"You stretch an elastic band between two fingers. The elastic band is under ___?",choices:["Compression","Gravity only","Tension"],answer:2,explain:"✅ Right! Pulling the band apart creates TENSION — it wants to spring back together!"},
+  {q:"What does COMPRESSION do to a material?",choices:["Pulls and stretches it","Pushes and squeezes it","Makes it float"],answer:1,explain:"✅ Exactly! COMPRESSION pushes and squeezes materials together. Great job!"},
+  {q:"The cables on a suspension bridge are under ___?",choices:["Tension","Compression","Neither"],answer:0,explain:"✅ Yes! The cables are pulled tight — they are under TENSION, holding up the bridge!"},
+  {q:"A pillar (column) holding up a roof is mainly under ___?",choices:["Tension","Zero force","Compression"],answer:2,explain:"✅ Awesome! The roof pushes DOWN on the pillar, squeezing it — that's COMPRESSION!"}
+];
+let answered=0,correct=0;
+function buildQuiz(){
+  const c=document.getElementById('quizContainer');
+  questions.forEach((q,i)=>{
+    const div=document.createElement('div'); div.className='quiz-q';
+    const p=document.createElement('p'); p.textContent=(i+1)+'. '+q.q; div.appendChild(p);
+    const ch=document.createElement('div'); ch.className='quiz-choices';
+    q.choices.forEach((c,ci)=>{
+      const b=document.createElement('button'); b.className='quiz-choice'; b.textContent=c;
+      b.onclick=()=>handleAnswer(i,ci,b,div); ch.appendChild(b);
+    });
+    div.appendChild(ch);
+    const fb=document.createElement('div'); fb.className='quiz-feedback'; fb.id='fb'+i; div.appendChild(fb);
+    c.appendChild(div);
+  });
+}
+function handleAnswer(qi,ci,btn,div){
+  if(div.dataset.done) return; div.dataset.done='yes';
+  const q=questions[qi];
+  div.querySelectorAll('.quiz-choice').forEach(b=>b.disabled=true);
+  const fb=document.getElementById('fb'+qi);
+  if(ci===q.answer){btn.classList.add('correct');fb.textContent=q.explain;fb.style.color='#28a745';correct++;}
+  else{btn.classList.add('wrong');div.querySelectorAll('.quiz-choice')[q.answer].classList.add('correct');fb.textContent='Not quite! '+q.explain;fb.style.color='#dc3545';}
+  answered++; if(answered===questions.length) showScore();
+}
+function showScore(){
+  const sd=document.getElementById('scoreDisplay'),sn=document.getElementById('scoreNum'),sm=document.getElementById('scoreMsg');
+  sd.style.display='block'; sn.textContent=correct+'/'+questions.length;
+  if(correct===questions.length){sm.textContent="🎉 Perfect score! You're a forces expert!";sn.style.color='#06D6A0';}
+  else if(correct>=3){sm.textContent='⭐ Great job! You really understand compression and tension!';sn.style.color='#FFD166';}
+  else{sm.textContent="💪 Good try! Scroll back up and review — you've got this!";sn.style.color='#FF5E5B';}
+}
+buildQuiz();
+</script>
+</body>
+</html>
